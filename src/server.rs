@@ -15,7 +15,7 @@ pub enum Errors {
 
 #[derive(Debug, Clone)]
 pub struct Server {
-    pub user_disabled: bool,
+    pub show_users: bool,
     pub motd: Option<&'static str>,
     pub users: UserList,
 }
@@ -24,7 +24,7 @@ impl Server {
     pub fn new() -> Self {
         Server {
             motd: None,
-            user_disabled: false,
+            show_users: false,
             users: Arc::new(Mutex::new(HashMap::new())),
         }
     }
@@ -34,11 +34,11 @@ impl Server {
     }
 
     pub fn disable_users(&mut self) {
-        self.user_disabled = true;
+        self.show_users = true;
     }
 
     pub fn enable_users(&mut self) {
-        self.user_disabled = false;
+        self.show_users = false;
     }
 
     pub async fn nick_command(
@@ -94,7 +94,7 @@ impl Server {
 
     // todo: add server parameter
     pub async fn users_command(&mut self) -> (Option<Errors>, String) {
-        if !self.user_disabled {
+        if !self.show_users {
             return (
                 Some(Errors::ErrUserDisabled),
                 "USERS has been disabled".to_string(),
