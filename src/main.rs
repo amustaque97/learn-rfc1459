@@ -77,6 +77,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "USER" => {
                         response = server.user_command(command_list[1..].into(), addr).await;
                     }
+                    "USERS" => {
+                        response = server.users_command().await;
+                    }
                     _ => todo!("Unknown command"),
                 }
 

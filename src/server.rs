@@ -79,7 +79,17 @@ impl Server {
 
         let val: &mut Vec<String> = user_list.get_mut(&addr.to_string()).unwrap();
         val.push(username);
-        return (None, "Username registered successfully".to_string());
+        return (None, "Username registered successfully\r\n".to_string());
+    }
+
+    pub async fn users_command(&mut self) -> (Option<Errors>, String) {
+        let users_list = self.users.lock().unwrap();
+        let users: Vec<String> = users_list
+            .clone()
+            .iter()
+            .map(|(_, v)| v.clone().get(1).unwrap().to_string())
+            .collect();
+        return (None, format!("{}\r\n", users.join("\r\n")));
     }
 }
 
