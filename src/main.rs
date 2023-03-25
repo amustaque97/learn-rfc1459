@@ -80,6 +80,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "USERS" => {
                         response = server.users_command().await;
                     }
+                    "VERSION" => {
+                        response = server.show_version().await;
+                    }
+                    "TIME" => {
+                        response = server.show_time().await;
+                    }
                     _ => todo!("Unknown command"),
                 }
 

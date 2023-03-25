@@ -1,3 +1,4 @@
+use chrono::{DateTime, Local};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -15,6 +16,7 @@ pub enum Errors {
 
 #[derive(Debug, Clone)]
 pub struct Server {
+    pub version: &'static str,
     pub show_users: bool,
     pub motd: Option<&'static str>,
     pub users: UserList,
@@ -23,6 +25,7 @@ pub struct Server {
 impl Server {
     pub fn new() -> Self {
         Server {
+            version: "1.0",
             motd: None,
             show_users: false,
             users: Arc::new(Mutex::new(HashMap::new())),
@@ -107,6 +110,20 @@ impl Server {
             .map(|(_, v)| v.clone().get(1).unwrap().to_string())
             .collect();
         return (None, format!("{}\r\n", users.join("\r\n")));
+    }
+
+    // todo add server parameter support
+    pub async fn show_version(&mut self) -> (Option<Errors>, String) {
+        (None, format!("{}\r\n", self.version.to_string()))
+    }
+
+    // todo add server parameter support
+    pub async fn show_time(&mut self) -> (Option<Errors>, String) {
+        let now: DateTime<Local> = Local::now();
+        (
+            None,
+            format!("{}\r\n", now.format("%Y-%m-%d %H:%M:%S").to_string()),
+        )
     }
 }
 
