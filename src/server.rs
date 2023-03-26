@@ -16,6 +16,7 @@ pub enum Errors {
 
 #[derive(Debug, Clone)]
 pub struct Server {
+    pub admin: String,
     pub version: &'static str,
     pub show_users: bool,
     pub motd: Option<&'static str>,
@@ -23,8 +24,9 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new() -> Self {
+    pub fn new(admin: String) -> Self {
         Server {
+            admin,
             version: "1.0",
             motd: None,
             show_users: false,
@@ -113,17 +115,22 @@ impl Server {
     }
 
     // todo add server parameter support
-    pub async fn show_version(&mut self) -> (Option<Errors>, String) {
+    pub async fn show_version(&self) -> (Option<Errors>, String) {
         (None, format!("{}\r\n", self.version.to_string()))
     }
 
     // todo add server parameter support
-    pub async fn show_time(&mut self) -> (Option<Errors>, String) {
+    pub async fn show_time(&self) -> (Option<Errors>, String) {
         let now: DateTime<Local> = Local::now();
         (
             None,
             format!("{}\r\n", now.format("%Y-%m-%d %H:%M:%S").to_string()),
         )
+    }
+
+    // todo add server parameter support
+    pub async fn admin_command(&self) -> (Option<Errors>, String) {
+        (None, format!("{}\r\n", self.admin.clone()))
     }
 }
 

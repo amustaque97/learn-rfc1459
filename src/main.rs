@@ -22,10 +22,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:8080".to_string());
 
+    let admin: String = env::args().nth(2).unwrap_or_else(|| "root".to_string());
+
     let listener = TcpListener::bind(&addr).await?;
     println!("Server running on {}", addr);
 
-    let mut server = Server::new();
+    let mut server = Server::new(admin);
     server.set_motd("Welcome to the default server\r\n");
 
     loop {
@@ -85,6 +87,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     "TIME" => {
                         response = server.show_time().await;
+                    }
+                    "ADMIN" => {
+                        response = server.admin_command().await;
                     }
                     _ => todo!("Unknown command"),
                 }
