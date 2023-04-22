@@ -85,6 +85,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "VERSION" => {
                         response = server.show_version().await;
                     }
+                    "LINKS" => {
+                        response = server.links_command(command_list[1..].into()).await;
+                    }
                     "TIME" => {
                         response = server.show_time().await;
                     }

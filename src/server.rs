@@ -2,10 +2,15 @@ use chrono::{DateTime, Local};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
+use regex::Regex;
+use lazy_static::lazy_static;
 
 // key: addr
 // Val: nickname, username
 type UserList = Arc<Mutex<HashMap<String, Vec<String>>>>;
+// key: addr
+// val: connection status — active or inactive
+type ServerList = Arc<Mutex<HashMap<String, String>>>;
 
 pub enum Errors {
     ErrNoNickNameGiven = 431,
@@ -21,6 +26,7 @@ pub struct Server {
     pub show_users: bool,
     pub motd: Option<&'static str>,
     pub users: UserList,
+    pub servers: ServerList,
 }
 
 impl Server {
@@ -31,6 +37,7 @@ impl Server {
             motd: None,
             show_users: false,
             users: Arc::new(Mutex::new(HashMap::new())),
+            servers: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -117,6 +124,21 @@ impl Server {
     // todo add server parameter support
     pub async fn show_version(&self) -> (Option<Errors>, String) {
         (None, format!("{}\r\n", self.version.to_string()))
+    }
+
+    // todo add support for <remote server> <server mask>
+    pub async fn links_command(&mut self, command_list: Vec<String>) -> (Option<Errors>, String) {
+        let servers = self.servers.lock().unwrap();
+        let pattern = &command_list[0];
+        let regex = String::from(pattern);
+        let re: Regex = Regex::new(&regex).unwrap();
+        let mut result: Vec<String>  = Vec::new();
+        for (key, _val) in servers.iter() {
+            if re.is_match(key) {
+                result.push(key.clone())
+            }
+        }
+        (None, format!("All servers {}\r\n", result.join("\r\n")))
     }
 
     // todo add server parameter support
