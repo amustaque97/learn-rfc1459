@@ -16,6 +16,7 @@ pub enum Errors {
     ErrNickNameInUse = 433,
     ErrUserDisabled = 446,
     ErrNoSuchServer = 402,
+    ErrNeedMoreParams = 461,
     UnknownCommand = -1,
 }
 
@@ -196,6 +197,9 @@ impl Server {
     pub async fn userhost_command(&self, command_list: Vec<String>) -> (Option<Errors>, String) {
         let users_list = self.users.lock().unwrap();
         let users_req: Vec<String> = command_list;
+        if users_req.len() == 0 {
+            return (Some(Errors::ErrNeedMoreParams), format!("Not enough parameters"));
+        }
         let users: Vec<String> = users_list
             .clone()
             .iter()
