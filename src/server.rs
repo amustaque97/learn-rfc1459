@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
 // key: addr
-// Val: nickname, username
+// Val: password, nickname, username
 type UserList = Arc<Mutex<HashMap<String, Vec<String>>>>;
 // key: addr
 // val: connection status — active or inactive
@@ -54,6 +54,34 @@ impl Server {
         self.show_users = false;
     }
 
+    pub async fn pass_command(
+        &mut self,
+        command_list: Vec<String>,
+        addr: SocketAddr,
+    ) -> (Option<Errors>, String) {
+        let empty = "".to_string();
+        let password = command_list
+            .get(0)
+            .unwrap_or_else(|| &empty)
+            .to_string()
+            .clone()
+            .to_lowercase();
+        println!("Register password {:?}", password);
+
+        if password.len() < 1 {
+            return (
+                Some(Errors::ErrNeedMoreParams),
+                "No password given\r\n".to_string(),
+            );
+        }
+
+        let mut user_list = self.users.lock().unwrap();
+        let mut val = Vec::new();
+        val.push(password.clone());
+        user_list.insert(addr.to_string(), val);
+        return (None, format!("Register new password \"{}\" \r\n", password));
+    }
+
     pub async fn nick_command(
         &mut self,
         command_list: Vec<String>,
@@ -76,6 +104,9 @@ impl Server {
         }
 
         let mut user_list = self.users.lock().unwrap();
+        // todo this needs to be fixed contains key cannot check for nickname
+        // this should be iterate over hashmap and check each individual connection
+        // and check if nickname already exists or not.
         if user_list.contains_key(&nickname) {
             // todo kill command and kick out all the existing nickname
             return (
@@ -117,7 +148,7 @@ impl Server {
         let users: Vec<String> = users_list
             .clone()
             .iter()
-            .map(|(_, v)| v.clone().get(1).unwrap().to_string())
+            .map(|(_, v)| v.clone().get(2).unwrap().to_string())
             .collect();
         return (None, format!("{}\r\n", users.join("\r\n")));
     }
@@ -171,7 +202,7 @@ impl Server {
 
     // todo support operator <o>
     ///! this is identical to the `userhost` command with only a minor diff
-    ///! `who` commmand only accepts a single username whereas other command 
+    ///! `who` commmand only accepts a single username whereas other command
     ///! can lookup multiple names. Also `who` command support operator whereas
     ///! `userhost` command can't.
     pub async fn who_command(&self, command_list: Vec<String>) -> (Option<Errors>, String) {
@@ -198,7 +229,10 @@ impl Server {
         let users_list = self.users.lock().unwrap();
         let users_req: Vec<String> = command_list;
         if users_req.len() == 0 {
-            return (Some(Errors::ErrNeedMoreParams), format!("Not enough parameters"));
+            return (
+                Some(Errors::ErrNeedMoreParams),
+                format!("Not enough parameters"),
+            );
         }
         let users: Vec<String> = users_list
             .clone()

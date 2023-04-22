@@ -73,6 +73,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     (Some(Errors::UnknownCommand), "Unknown command".to_string());
 
                 match command {
+                    "PASS" => {
+                        response = server.pass_command(command_list[1..].into(), addr).await;
+                    }
                     "NICK" => {
                         response = server.nick_command(command_list[1..].into(), addr).await;
                     }
