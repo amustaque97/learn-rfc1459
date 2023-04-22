@@ -91,6 +91,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "TIME" => {
                         response = server.show_time().await;
                     }
+                    "CONNECT" => {
+                        response = server.connect_command(command_list[1..].into()).await;
+                    }
                     "ADMIN" => {
                         response = server.admin_command().await;
                     }

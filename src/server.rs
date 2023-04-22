@@ -1,9 +1,8 @@
 use chrono::{DateTime, Local};
+use regex::Regex;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
-use regex::Regex;
-use lazy_static::lazy_static;
 
 // key: addr
 // Val: nickname, username
@@ -16,6 +15,7 @@ pub enum Errors {
     ErrNoNickNameGiven = 431,
     ErrNickNameInUse = 433,
     ErrUserDisabled = 446,
+    ErrNoSuchServer = 402,
     UnknownCommand = -1,
 }
 
@@ -132,7 +132,7 @@ impl Server {
         let pattern = &command_list[0];
         let regex = String::from(pattern);
         let re: Regex = Regex::new(&regex).unwrap();
-        let mut result: Vec<String>  = Vec::new();
+        let mut result: Vec<String> = Vec::new();
         for (key, _val) in servers.iter() {
             if re.is_match(key) {
                 result.push(key.clone())
@@ -148,6 +148,16 @@ impl Server {
             None,
             format!("{}\r\n", now.format("%Y-%m-%d %H:%M:%S").to_string()),
         )
+    }
+
+    // todo support remote server param
+    pub async fn connect_command(&mut self, command_list: Vec<String>) -> (Option<Errors>, String) {
+        let servers = self.servers.lock().unwrap();
+        if servers.contains_key(&command_list[0]) {
+            (None, format!("Attemp to connect a server to {}", &command_list[0]))
+        } else {
+            (Some(Errors::ErrNoSuchServer), format!("No such server\r\n"))
+        }
     }
 
     // todo add server parameter support
