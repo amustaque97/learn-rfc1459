@@ -154,7 +154,10 @@ impl Server {
     pub async fn connect_command(&mut self, command_list: Vec<String>) -> (Option<Errors>, String) {
         let servers = self.servers.lock().unwrap();
         if servers.contains_key(&command_list[0]) {
-            (None, format!("Attemp to connect a server to {}", &command_list[0]))
+            (
+                None,
+                format!("Attemp to connect a server to {}", &command_list[0]),
+            )
         } else {
             (Some(Errors::ErrNoSuchServer), format!("No such server\r\n"))
         }
@@ -163,6 +166,27 @@ impl Server {
     // todo add server parameter support
     pub async fn admin_command(&self) -> (Option<Errors>, String) {
         (None, format!("{}\r\n", self.admin.clone()))
+    }
+
+    // todo support operator <o>
+    pub async fn who_command(&self, command_list: Vec<String>) -> (Option<Errors>, String) {
+        let users_list = self.users.lock().unwrap();
+        let who_user = &command_list[0];
+        let users: Vec<String> = users_list
+            .clone()
+            .iter()
+            .filter(|(_k, v)| {
+                for val in v.into_iter() {
+                    if val == who_user {
+                        return true;
+                    }
+                }
+                return false;
+            })
+            .map(|(k, _v)| k.clone())
+            .collect();
+
+        return (None, format!("{}\r\n", users.join("\r\n")));
     }
 }
 

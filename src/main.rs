@@ -97,6 +97,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     "ADMIN" => {
                         response = server.admin_command().await;
                     }
+                    "WHO" => {
+                        response = server.who_command(command_list[1..].into()).await;
+                    }
                     _ => todo!("Unknown command"),
                 }
 
