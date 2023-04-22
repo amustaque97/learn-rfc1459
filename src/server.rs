@@ -169,6 +169,10 @@ impl Server {
     }
 
     // todo support operator <o>
+    ///! this is identical to the `userhost` command with only a minor diff
+    ///! `who` commmand only accepts a single username whereas other command 
+    ///! can lookup multiple names. Also `who` command support operator whereas
+    ///! `userhost` command can't.
     pub async fn who_command(&self, command_list: Vec<String>) -> (Option<Errors>, String) {
         let users_list = self.users.lock().unwrap();
         let who_user = &command_list[0];
@@ -186,7 +190,28 @@ impl Server {
             .map(|(k, _v)| k.clone())
             .collect();
 
-        return (None, format!("{}\r\n", users.join("\r\n")));
+        (None, format!("{}\r\n", users.join("\r\n")))
+    }
+
+    pub async fn userhost_command(&self, command_list: Vec<String>) -> (Option<Errors>, String) {
+        let users_list = self.users.lock().unwrap();
+        let users_req: Vec<String> = command_list;
+        let users: Vec<String> = users_list
+            .clone()
+            .iter()
+            .filter(|(_k, v)| {
+                for val in v.into_iter() {
+                    for u in users_req.iter().cloned() {
+                        if &u == val {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            })
+            .map(|(k, _v)| k.clone())
+            .collect();
+        (None, format!("{}\r\n", users.join("\r\n")))
     }
 }
 
