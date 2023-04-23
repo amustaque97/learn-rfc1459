@@ -1,9 +1,11 @@
 use chrono::{DateTime, Local};
 use regex::Regex;
+use tokio::net::TcpStream;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
+type ConnectionList = Arc<Mutex<HashMap<String, TcpStream>>>;
 // key: addr
 // Val: password, nickname, username
 type UserList = Arc<Mutex<HashMap<String, Vec<String>>>>;
@@ -26,6 +28,7 @@ pub struct Server {
     pub version: &'static str,
     pub show_users: bool,
     pub motd: Option<&'static str>,
+    pub connections: ConnectionList,
     pub users: UserList,
     pub servers: ServerList,
 }
@@ -37,6 +40,7 @@ impl Server {
             version: "1.0",
             motd: None,
             show_users: false,
+            connections: Arc::new(Mutex::new(HashMap::new())),
             users: Arc::new(Mutex::new(HashMap::new())),
             servers: Arc::new(Mutex::new(HashMap::new())),
         }
